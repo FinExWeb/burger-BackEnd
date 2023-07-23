@@ -4,7 +4,8 @@ const noteRouter = require('./router/note.router');
 const userRouter = require('./router/user.router');
 const Food = require('./model/food.model');
 const cors = require('cors');
-const path = require('path')
+const path = require('path');
+const newsModel = require('./model/news.model');
 
 const app = express();
 
@@ -18,6 +19,50 @@ app.use("/images", express.static('uploads'));
 
 app.use('/', require('./router/food.router'));
 app.use('/shop', require('./router/order.router'));
+
+
+app.get('/news', async (req, res) => {
+    try {
+        const foods = await newsModel.find();
+        res.status(200).json(foods);
+    } catch (error) {
+        console.log('Xatolik yuz berdi:', error);
+        return res.status(500).json({ error: "Xatolik mavjud" }); // api routeri xatolk berganida ko'rish uchun
+    }
+})
+
+app.post('/addnews', async (req, res) => {
+    const { newFood, newFoodPrice, Restaurant, newFoodGift } = req.body
+    const news = {
+        newFood,
+        newFoodPrice,
+        Restaurant,
+        newFoodGift
+    }
+    console.log(news);
+    const newNews = await newsModel.create({
+        newFood,
+        newFoodPrice,
+        Restaurant,
+        newFoodGift
+    })
+    res.json(newNews)
+})
+
+app.delete('/deletenews/:id', async (req, res) => {
+    try {
+        const newDeleteID = req.params.id;
+        const newDelete = await newsModel.findByIdAndDelete(newDeleteID)
+
+        if (!newDelete) {
+            return res.status(404).json({ error: "Mavjud emas!" });
+        }
+
+        res.status(200).json({ message: "O'chirildi!" });
+    } catch (error) {
+        re.status(500).json({ error: error.message });
+    }
+})
 
 app.get('/api', async (req, res) => {
     try {
